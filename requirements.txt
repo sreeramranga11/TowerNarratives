@@ -3,4 +3,6 @@ PyPDF2
 ebooklib
 beautifulsoup4
 nltk
-dotenv
+python-dotenv
+fpdf2
+unidecode

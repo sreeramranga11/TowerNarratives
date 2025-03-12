@@ -2,20 +2,22 @@ from ingestion import read_xml, read_pdf, read_epub
 from text_processing import clean_text
 from summarization import summarize_text, analyze_comparative
 from report_generation import generate_thesis, generate_report
+from fpdf import FPDF
+from unidecode import unidecode
 
 def process_book(file_path, file_type):
     """
     Process a book by:
-      1. Reading the file content based on its file type (XML, PDF, or EPUB).
-      2. Cleaning the extracted text to remove extra whitespace and irrelevant characters.
-      3. Summarizing the cleaned text using the OpenAI API, ensuring that the summary includes direct citations.
+      1. Reading the file content based on its type (XML, PDF, or EPUB).
+      2. Cleaning the extracted text to remove extra whitespace.
+      3. Summarizing the cleaned text using the OpenAI API (with citations).
     
     Parameters:
-      - file_path: The path to the book file.
-      - file_type: The type of the file ('xml', 'pdf', or 'epub').
+      - file_path (str): Path to the book file.
+      - file_type (str): The type of the file ('xml', 'pdf', or 'epub').
 
     Returns:
-      - A summary of the book that focuses on the theme of social isolation.
+      - str: A summary of the book focused on social isolation.
     """
     # Read the book file according to its type.
     if file_type == "xml":
@@ -25,34 +27,33 @@ def process_book(file_path, file_type):
     elif file_type == "epub":
         raw_text = read_epub(file_path)
     else:
-        # Raise an error if the file type is not supported.
         raise ValueError("Unsupported file type")
     
     print("Finished reading file. Cleaning text...")
-    # Clean the raw text to standardize spacing and remove unnecessary characters.
+    # Clean the extracted text.
     cleaned = clean_text(raw_text)
     
     print("Summarizing entire text...")
-    # Use the OpenAI API to generate a summary for the cleaned text.
+    # Generate a summary of the cleaned text using the OpenAI API.
     summary = summarize_text(cleaned)
     return summary
 
 def main():
     """
     Main function to execute the entire workflow:
-      1. Define file paths for the three novels located in the "Readings" folder.
+      1. Define file paths for the three novels.
       2. Process each book to produce summaries.
-      3. Analyze the summaries comparatively to extract thematic differences/similarities.
+      3. Analyze the summaries comparatively.
       4. Generate a thesis statement based on the summaries and comparative analysis.
       5. Generate a complete five-paragraph book report (with citations) using the thesis, summaries, and analysis.
-      6. Save the final report to a text file.
+      6. Convert the final report to ASCII and export it as a PDF.
     """
-    # Define file paths for the three books.
+    # Define file paths (assumes a "Readings" folder in the project root).
     xml_path = "Readings/The-Bell-Jar-1645639705._vanilla.xml"
     pdf_path = "Readings/the_stranger.pdf"
     epub_path = "Readings/franz-kafka_metamorphosis.epub"
 
-    # Process each book and obtain a summary for each.
+    # Process each book to obtain its summary.
     print("Processing Metamorphosis (EPUB)...")
     metamorphosis_summary = process_book(epub_path, "epub")
     
@@ -62,29 +63,37 @@ def main():
     print("Processing The Stranger (PDF)...")
     stranger_summary = process_book(pdf_path, "pdf")
     
-    # Combine the individual book summaries into a list for comparative analysis.
+    # Combine the individual book summaries into a list.
     summaries = [belljar_summary, stranger_summary, metamorphosis_summary]
+    
     print("Analyzing comparative themes...")
-    # Analyze the summaries to identify how each novel addresses social isolation.
+    # Analyze the summaries comparatively to extract thematic insights.
     comparative_analysis = analyze_comparative(summaries)
     
-    # Generate a thesis statement using the summaries and the comparative analysis.
     print("Generating thesis statement...")
+    # Generate a thesis statement based on the book summaries and their comparative analysis.
     thesis_statement = generate_thesis(summaries, comparative_analysis)
     print("Thesis generated:", thesis_statement)
     
-    # Generate the final five-paragraph book report.
     print("Generating final book report...")
-    # The final report will incorporate the thesis, individual book summaries, and comparative analysis.
+    # Generate the final five-paragraph book report.
     book_summaries = [belljar_summary, stranger_summary, metamorphosis_summary]
     final_report = generate_report(thesis_statement, book_summaries, comparative_analysis)
     
-    # Save the final report as a text file.
-    with open("Final_Book_Report.txt", "w", encoding="utf-8") as f:
-        f.write(final_report)
+    # Convert the final report to ASCII using unidecode, to handle unsupported Unicode characters.
+    final_report_ascii = unidecode(final_report)
     
-    print("Book report generated and saved as Final_Book_Report.txt")
+    print("Exporting final report to PDF...")
+    # Create a PDF object using FPDF.
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)  # Using built-in Arial font (Latin-1 encoding)
+    
+    # Write the ASCII-converted report into the PDF using multi_cell for proper text wrapping.
+    pdf.multi_cell(0, 10, final_report_ascii)
+    pdf.output("Final_Book_Report.pdf")
+    
+    print("Book report generated and saved as Final_Book_Report.pdf")
 
 if __name__ == "__main__":
-    # Run the main function if this script is executed directly.
     main()
