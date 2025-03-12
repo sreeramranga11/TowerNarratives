@@ -14,16 +14,23 @@ def summarize_text(text):
     """
     Summarizes the given text with emphasis on the theme of social isolation.
     Uses the OpenAI API (gpt-4o-mini-2024-07-18).
+    In the summary, include at least one direct citation (an exact quote) from the text that supports your analysis.
+    The citation should be enclosed in double quotes and reference the relevant section if possible.
     """
     key = hashlib.sha256(text.encode("utf-8")).hexdigest()
     if key in cache:
         return cache[key]
     
-    prompt = f"Focus on the theme of social isolation. Summarize the following text:\n\n{text}. Make sure to wrap the name of the book in quotation marks."
+    prompt = (
+        "Focus on the theme of social isolation. Summarize the following text. "
+        "In your summary, include at least one direct citation from the text (an exact quote) that supports your analysis of social isolation. "
+        "Ensure that the citation is enclosed in double quotes and, if possible, indicate the section of the text.\n\n"
+        f"{text}\n\n"
+    )
     response = openai.ChatCompletion.create(
          model="gpt-4o-mini-2024-07-18",
          messages=[
-             {"role": "system", "content": "You are a helpful assistant that summarizes text with emphasis on social isolation."},
+             {"role": "system", "content": "You are a helpful assistant that summarizes text with emphasis on social isolation and includes citations from the text."},
              {"role": "user", "content": prompt}
          ],
          temperature=0.7,
@@ -41,7 +48,7 @@ def analyze_comparative(summaries):
     formatted_summaries = "\n\n".join(summaries)
     
     prompt = (
-        "Compare these book summaries in terms of how they address social isolation. Make sure to wrap the name of the book in quotation marks. \n"
+        "Compare these book summaries in terms of how they address social isolation. Make sure to include any direct citations (exact quotes) from the texts if present.\n"
         "Summaries:\n" + formatted_summaries + "\n\n"
         "Comparison:"
     )
@@ -49,7 +56,7 @@ def analyze_comparative(summaries):
     response = openai.ChatCompletion.create(
          model="gpt-4o-mini-2024-07-18",
          messages=[
-             {"role": "system", "content": "You are a helpful assistant that compares summaries with emphasis on social isolation."},
+             {"role": "system", "content": "You are a helpful assistant that compares summaries with emphasis on social isolation and includes citations where applicable."},
              {"role": "user", "content": prompt}
          ],
          temperature=0.7,
