@@ -6,3 +6,4 @@ nltk
 python-dotenv
 fpdf2
 unidecode
+python-docx

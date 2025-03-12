@@ -2,13 +2,14 @@ from ingestion import read_xml, read_pdf, read_epub
 from text_processing import clean_text
 from summarization import summarize_text, analyze_comparative
 from report_generation import generate_thesis, generate_report
-from fpdf import FPDF
-from unidecode import unidecode
+from docx import Document
+from docx.shared import Pt
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 def process_book(file_path, file_type):
     """
     Process a book by:
-      1. Reading the file content based on its type (XML, PDF, or EPUB).
+      1. Reading the file content based on its file type (XML, PDF, or EPUB).
       2. Cleaning the extracted text to remove extra whitespace.
       3. Summarizing the cleaned text using the OpenAI API (with citations).
     
@@ -46,7 +47,7 @@ def main():
       3. Analyze the summaries comparatively.
       4. Generate a thesis statement based on the summaries and comparative analysis.
       5. Generate a complete five-paragraph book report (with citations) using the thesis, summaries, and analysis.
-      6. Convert the final report to ASCII and export it as a PDF.
+      6. Export the final report as a DOCX file.
     """
     # Define file paths (assumes a "Readings" folder in the project root).
     xml_path = "Readings/The-Bell-Jar-1645639705._vanilla.xml"
@@ -65,9 +66,8 @@ def main():
     
     # Combine the individual book summaries into a list.
     summaries = [belljar_summary, stranger_summary, metamorphosis_summary]
-    
     print("Analyzing comparative themes...")
-    # Analyze the summaries comparatively to extract thematic insights.
+    # Analyze the summaries to extract thematic insights.
     comparative_analysis = analyze_comparative(summaries)
     
     print("Generating thesis statement...")
@@ -80,20 +80,25 @@ def main():
     book_summaries = [belljar_summary, stranger_summary, metamorphosis_summary]
     final_report = generate_report(thesis_statement, book_summaries, comparative_analysis)
     
-    # Convert the final report to ASCII using unidecode, to handle unsupported Unicode characters.
-    final_report_ascii = unidecode(final_report)
+    # Export the final report as a DOCX file.
+    print("Exporting final report to DOCX...")
+    document = Document()
+    # Add a title to the document using a heading style.
+    document.add_heading(final_report.split('\n\n')[0], 0)  # Assume title is the first line.
     
-    print("Exporting final report to PDF...")
-    # Create a PDF object using FPDF.
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)  # Using built-in Arial font (Latin-1 encoding)
+    # Split the report into paragraphs (separated by two newlines).
+    paragraphs = final_report.split("\n\n")
+    # Skip the title if already used.
+    for para in paragraphs[1:]:
+        p = document.add_paragraph(para)
+        # Set first-line indent (e.g., 36 points ~ half inch).
+        p.paragraph_format.first_line_indent = Pt(36)
+        # Optionally, align text to justify.
+        p.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
     
-    # Write the ASCII-converted report into the PDF using multi_cell for proper text wrapping.
-    pdf.multi_cell(0, 10, final_report_ascii)
-    pdf.output("Final_Book_Report.pdf")
-    
-    print("Book report generated and saved as Final_Book_Report.pdf")
+    # Save the document.
+    document.save("Final_Book_Report.docx")
+    print("Book report generated and saved as Final_Book_Report.docx")
 
 if __name__ == "__main__":
     main()

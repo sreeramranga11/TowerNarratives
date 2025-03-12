@@ -1,24 +1,46 @@
 # TowerNarratives
-Tower Narratives is an automated pipeline that generates a comprehensive literary analysis report on the theme of social isolation. The system ingests multiple book files, processes them with a language model, and produces a cohesive five-paragraph report complete with citations from the texts.
+TowerNarratives is an automated system for generating detailed book reports based on three novels. The system ingests texts from various file formats (XML, PDF, EPUB), uses the OpenAI API to summarize and analyze the texts with an emphasis on social isolation, and finally produces a five-paragraph report. The report includes a dynamic title, thesis, and direct citations from the texts, and is exported as a DOCX file.
 
-## Features
-Multi-format Ingestion: Supports TXT, PDF, and other common formats.
-Preprocessing & Chunking: Splits large texts into manageable chunks to accommodate LLM context limits.
-Thematic Analysis: Uses language models to extract key passages on social isolation.
-Automated Report Generation: Produces a structured report featuring a thesis, arguments, and conclusion.
+## Input:
+- Three novels in XML, PDF, and EPUB formats (located in the Readings folder).
 
-## Project Structure
-ingest.py: Loads and parses text from various file types.
-chunker.py: Breaks texts into chunks that fit model context sizes.
-analysis.py: Analyzes text chunks to extract insights on social isolation.
-report_generator.py: Synthesizes analyses into a five-paragraph report.
-main.py: Orchestrates the entire pipeline.
+## Processing Steps:
+1. Ingestion:
+    - Custom modules extract text from XML, PDF, and EPUB files.
+2. Cleaning:
+    - Normalize and clean the extracted text using regular expressions.
+3. Summarization:
+    - Each book's text is summarized via the OpenAI API. Summaries include direct citations (exact quotes) to support analysis.
+4. Comparative Analysis:
+    - The summaries are compared to extract thematic insights regarding social isolation.
+5. Thesis & Title Generation:
+    - A thesis statement is generated from the comparative analysis, and a dynamic, creative title is produced based on the thesis.
+6. Report Generation:
+    - A structured, five-paragraph report is generated with:
+        - Paragraph 1: Introduction with thesis.
+        - Paragraph 2: Analysis of the first novel.
+        - Paragraph 3: Analysis of the second novel.
+        - Paragraph 4: Analysis of the third novel.
+        - Paragraph 5: A concluding paragraph with a rebuttal and summary. Each paragraph starts with a four-space indent.
+
+## Output:
+- The final report is exported as a DOCX file.
 
 ## Requirements
-Python 3.7 or higher
-Required libraries: PyPDF2 (for PDF processing), plus any necessary LLM API client libraries (e.g., OpenAI's API)
+The project depends on the following Python packages:
 
-## Usage
-Prepare the Files: Place your book files in the designated directory.
-Run the Pipeline: Execute python main.py to start the ingestion, analysis, and report generation process.
-Review the Report: The final book report will be generated in the output directory.
+- openai
+- PyPDF2
+- ebooklib
+- beautifulsoup4
+- nltk
+- python-dotenv
+- fpdf2
+- unidecode
+- python-docx
+
+Install them using:
+```pip install -r requirements.txt```
+
+You also need to have a .env file with your OpenAI key in this format:
+```OPENAI_API_KEY=sk-...```

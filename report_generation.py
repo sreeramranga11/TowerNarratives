@@ -6,10 +6,50 @@ import openai
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+def generate_title(thesis):
+    """
+    Generates a short, interesting, and unique title based on the provided thesis statement.
+    
+    Parameters:
+      - thesis (str): The thesis statement to base the title on.
+    
+    Returns:
+      - str: A short and unique title.
+    
+    Process:
+      - Constructs a prompt instructing GPT to generate a title based on the thesis.
+      - Calls the OpenAI API using the GPT-4o-mini model.
+      - Returns the generated title.
+    """
+    prompt = (
+        "Based on the following thesis statement, generate a short, interesting, and unique title in around 5 words for a book report on social isolation:\n\n"
+        + thesis + "\n\nTitle:"
+    )
+    response = openai.ChatCompletion.create(
+         model="gpt-4o-mini-2024-07-18",
+         messages=[
+             {"role": "system", "content": "You are a creative writer."},
+             {"role": "user", "content": prompt}
+         ],
+         temperature=0.7,
+         max_tokens=20
+    )
+    title = response.choices[0].message["content"].strip()
+    return title
+
 def generate_thesis(book_summaries, comparative_analysis):
     """
     Generates a thesis statement based on the provided book summaries and comparative analysis.
     Uses the OpenAI API (gpt-4o-mini-2024-07-18).
+    
+    The prompt instructs GPT to wrap publication names in double quotes.
+    
+    Parameters:
+      - book_summaries: List of summaries for each book.
+      - comparative_analysis: A comparative analysis of the summaries.
+    
+    Returns:
+      - A string containing the generated thesis statement.
     """
     formatted_summaries = "\n\n".join(book_summaries)
     prompt = (
@@ -36,11 +76,22 @@ def generate_paragraph(paragraph_index, thesis, book_summaries, comparative_anal
     """
     Generates an individual paragraph based on the specified index, ensuring that the output is exactly 4-5 sentences long
     and that publication titles are enclosed in double quotes.
-      1: Introductory paragraph that presents the topic and ends with the thesis statement.
-      2: Body paragraph discussing details from the first novel.
-      3: Body paragraph discussing details from the second novel.
-      4: Body paragraph discussing details from the third novel.
-      5: Concluding paragraph that presents a rebuttal of a counterargument and summarizes the report.
+    
+    Structure:
+      - Paragraph 1: Introductory paragraph that presents the topic and ends with the thesis statement.
+      - Paragraph 2: Body paragraph discussing details from the first novel.
+      - Paragraph 3: Body paragraph discussing details from the second novel.
+      - Paragraph 4: Body paragraph discussing details from the third novel.
+      - Paragraph 5: Concluding paragraph that presents a rebuttal of a counterargument and summarizes the report.
+    
+    Parameters:
+      - paragraph_index (int): The paragraph number (1 to 5).
+      - thesis (str): The thesis statement.
+      - book_summaries (list): List of summaries for each book.
+      - comparative_analysis (str): The comparative analysis of the summaries.
+    
+    Returns:
+      - A string containing the generated paragraph.
     """
     instruction = (
         "Ensure your response is exactly 4-5 sentences long. "
@@ -94,14 +145,31 @@ def generate_paragraph(paragraph_index, thesis, book_summaries, comparative_anal
 
 def generate_report(thesis, book_summaries, comparative_analysis):
     """
-    Generates a complete book report by asking GPT to generate each of the 5 paragraphs individually,
-    then combines them (separated by two newlines) to form the final report.
+    Generates a complete book report by:
+      1. Generating each of the 5 paragraphs individually.
+      2. Combining them with two newlines between paragraphs.
+      3. Dynamically generating a title based on the thesis statement.
+      4. Prepending the title to the report.
+      5. Ensuring each paragraph starts with a four-space indent.
+    
+    Parameters:
+      - thesis (str): The thesis statement.
+      - book_summaries (list): List of book summaries.
+      - comparative_analysis (str): The comparative analysis.
+    
+    Returns:
+      - A string containing the complete report with a dynamic title.
     """
+    # Generate a dynamic title based on the thesis.
+    title = generate_title(thesis)
+    
     paragraphs = []
     for i in range(1, 6):
         print(f"Generating paragraph {i}...")
         para = generate_paragraph(i, thesis, book_summaries, comparative_analysis)
-        paragraphs.append(para)
-    # Combine paragraphs with two newlines between each.
-    report = "\n\n".join(paragraphs)
+        # Add a four-space indent to the beginning of each paragraph.
+        indented_para = "    " + para
+        paragraphs.append(indented_para)
+    # Combine the title with the paragraphs; the title is separated by two newlines from the body.
+    report = title + "\n\n" + "\n\n".join(paragraphs)
     return report
