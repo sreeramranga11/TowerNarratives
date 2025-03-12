@@ -1,0 +1,6 @@
+openai
+PyPDF2
+ebooklib
+beautifulsoup4
+nltk
+dotenv
